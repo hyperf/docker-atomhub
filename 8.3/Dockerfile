@@ -21,7 +21,7 @@ ARG PHP_BUILD_VERSION
 ENV SW_VERSION=${SW_VERSION:-"v5.1.3"} \
     COMPOSER_VERSION=${COMPOSER_VERSION:-"2.7.7"} \
     PHP_BUILD_VERSION=${PHP_BUILD_VERSION:-"83"} \
-    COMPOSER_ALLOW_SUPERUSER=1 \
+    COMPOSER_ALLOW_SUPERUSER=1
 
 #  install and remove building packages
 ENV PHPIZE_DEPS="autoconf dpkg-dev dpkg file g++ gcc libc-dev make php${PHP_BUILD_VERSION}-dev php${PHP_BUILD_VERSION}-pear pkgconf re2c pcre-dev pcre2-dev zlib-dev libtool automake libaio-dev openssl-dev curl-dev"

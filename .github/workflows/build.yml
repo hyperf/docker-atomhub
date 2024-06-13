@@ -1,0 +1,60 @@
+name: Build Images
+
+on: [ push ]
+env:
+  COMPOSER_VERSION: '2.7.7'
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  SW_VERSION: 'v5.1.3'
+jobs:
+  build:
+    name: Build PHP ${{ matrix.php-version }} Alpine ${{ matrix.alpine-version }}
+    runs-on: '${{ matrix.os }}'
+    env:
+      ALPINE_VERSION: '${{ matrix.alpine-version }}'
+      PHP_VERSION: '${{ matrix.php-version }}'
+    strategy:
+      matrix:
+        os: [ ubuntu-latest ]
+        php-version: [ '8.1', '8.2', '8.3' ]
+        alpine-version: [ '3.16', '3.17', '3.18', '3.19', 'edge' ]
+        exclude:
+          - php-version: '8.3'
+            alpine-version: '3.16'
+          - php-version: '8.3'
+            alpine-version: '3.17'
+          - php-version: '8.3'
+            alpine-version: '3.18'
+          - php-version: '8.2'
+            alpine-version: '3.16'
+          - php-version: '8.2'
+            alpine-version: '3.17'
+          - php-version: '8.1'
+            alpine-version: 'edge'
+      max-parallel: 8
+      fail-fast: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Fetch the PHP BUILD VERSION
+        id: fetch-php-build-version
+        shell: php {0}
+        run: |
+          <?php
+          $alpineVersion = getenv('ALPINE_VERSION');
+          $phpVersion = getenv('PHP_VERSION');
+          $version = match($phpVersion){
+              '8.1' => '81',
+              '8.2' => '82',
+              '8.3' => '83',
+              default => substr($phpVersion, 0, 1)
+          };
+          echo "::set-output name=version::" . $version . PHP_EOL;
+      - name: Build
+        run: |
+          docker build . -t test -f ${PHP_VERSION}/Dockerfile \
+          --build-arg PHP_BUILD_VERSION=${{ steps.fetch-php-build-version.outputs.version }} \
+          --build-arg ALPINE_VERSION=${ALPINE_VERSION} \
+          --build-arg SW_VERSION=${SW_VERSION} \
+          --build-arg COMPOSER_VERSION=${COMPOSER_VERSION}
+        
+
